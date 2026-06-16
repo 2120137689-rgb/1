@@ -1,0 +1,814 @@
+index.html
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MemoFlow - 学习卡片</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:-apple-system,BlinkMacSystemFont,
+    "PingFang SC","Helvetica Neue",sans-serif;
+
+    background:#111827;
+    color:white;
+
+    min-height:100vh;
+    padding:16px;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.title{
+    font-size:28px;
+    font-weight:bold;
+}
+
+.counter{
+    opacity:0.8;
+}
+
+.card{
+    background:#1f2937;
+    border-radius:24px;
+
+    min-height:260px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    text-align:center;
+
+    padding:30px;
+
+    font-size:30px;
+
+    cursor:pointer;
+
+    transition:all .3s ease;
+
+    box-shadow:
+      0 10px 30px rgba(0,0,0,.3);
+}
+
+.card:active{
+    transform:scale(.98);
+}
+
+.button{
+    width:100%;
+    border:none;
+    padding:16px;
+    border-radius:14px;
+
+    color:white;
+
+    font-size:18px;
+
+    margin-top:16px;
+
+    cursor:pointer;
+}
+
+.primary{
+    background:#2563eb;
+}
+
+.hidden{
+    display:none;
+}
+
+.ratings{
+    display:grid;
+
+    grid-template-columns:
+      repeat(4,1fr);
+
+    gap:10px;
+
+    margin-top:18px;
+}
+
+.again{
+    background:#ef4444;
+}
+
+.hard{
+    background:#f59e0b;
+}
+
+.good{
+    background:#10b981;
+}
+
+.easy{
+    background:#3b82f6;
+}
+
+.stats{
+    margin-top:24px;
+
+    background:#1f2937;
+
+    border-radius:16px;
+
+    padding:16px;
+}
+
+.row{
+    display:flex;
+    justify-content:space-between;
+    margin:8px 0;
+}
+
+.section{
+    margin-top:24px;
+}
+
+input,textarea{
+    width:100%;
+
+    background:#374151;
+
+    color:white;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:12px;
+
+    margin-top:10px;
+}
+
+textarea{
+    min-height:100px;
+}
+
+.add-btn{
+    background:#10b981;
+}
+
+.delete-btn{
+    background:#ef4444;
+}
+
+.card-list{
+    margin-top:16px;
+}
+
+.card-item{
+    background:#1f2937;
+
+    border-radius:12px;
+
+    padding:12px;
+
+    margin-bottom:10px;
+}
+
+.small{
+    font-size:14px;
+    opacity:.8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div class="title">
+            MemoFlow
+        </div>
+
+        <div
+            id="progress"
+            class="counter">
+            0/0
+        </div>
+
+    </div>
+
+    <div
+        id="studyCard"
+        class="card">
+    </div>
+
+    <button
+        id="showBtn"
+        class="button primary">
+        显示答案
+    </button>
+
+    <div
+        id="ratings"
+        class="ratings hidden">
+
+        <button
+            class="button again"
+            onclick="rate(0)">
+            Again
+        </button>
+
+        <button
+            class="button hard"
+            onclick="rate(1)">
+            Hard
+        </button>
+
+        <button
+            class="button good"
+            onclick="rate(2)">
+            Good
+        </button>
+
+        <button
+            class="button easy"
+            onclick="rate(3)">
+            Easy
+        </button>
+
+    </div>
+
+    <div class="stats">
+
+        <div class="row">
+            <span>
+                今日学习
+            </span>
+
+            <span id="todayCount">
+                0
+            </span>
+        </div>
+
+        <div class="row">
+            <span>
+                卡片总数
+            </span>
+
+            <span id="cardCount">
+                0
+            </span>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h2>
+            添加卡片
+        </h2>
+
+        <input
+            id="frontInput"
+            placeholder="问题">
+
+        <textarea
+            id="backInput"
+            placeholder="答案">
+        </textarea>
+
+        <button
+            class="button add-btn"
+            onclick="addCard()">
+
+            添加卡片
+
+        </button>
+
+    </div>
+
+    <div class="section">
+
+        <h2>
+            我的卡片
+        </h2>
+
+        <div
+            id="cardList"
+            class="card-list">
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+// ===== 数据初始化 =====
+
+let cards =
+JSON.parse(
+localStorage.getItem(
+"cards"
+));
+
+if(!cards){
+
+    cards = [
+
+        {
+            id:1,
+
+            front:"Apple",
+
+            back:"苹果",
+
+            stability:1,
+
+            difficulty:5,
+
+            nextReview:
+                Date.now()
+        },
+
+        {
+            id:2,
+
+            front:"Dog",
+
+            back:"狗",
+
+            stability:1,
+
+            difficulty:5,
+
+            nextReview:
+                Date.now()
+        }
+
+    ];
+
+}
+
+let today =
+Number(
+localStorage.getItem(
+"todayCount"
+)) || 0;
+
+let index = 0;
+
+let showAnswer = false;
+
+// ===== FSRS-Lite 调度算法 =====
+
+function schedule(card, rating){
+
+    // Again
+    if(rating === 0){
+        card.stability *= 0.5;
+        card.difficulty += 0.3;
+    }
+
+    // Hard
+    if(rating === 1){
+        card.stability *= 1.2;
+        card.difficulty += 0.1;
+    }
+
+    // Good
+    if(rating === 2){
+        card.stability *= 2.5;
+    }
+
+    // Easy
+    if(rating === 3){
+        card.stability *= 3.5;
+        card.difficulty -= 0.1;
+    }
+
+    // 限制范围
+    card.stability =
+        Math.max(
+            1,
+            card.stability
+        );
+
+    card.difficulty =
+        Math.max(
+            1,
+            Math.min(
+                10,
+                card.difficulty
+            )
+        );
+
+    const days =
+        Math.round(
+            card.stability
+        );
+
+    card.nextReview =
+        Date.now()
+        +
+        days * 86400000;
+
+    return card;
+}
+
+// ===== 获取待学习卡片 =====
+
+function getQueue(){
+
+    return cards.filter(
+        c =>
+            c.nextReview <=
+            Date.now()
+    );
+
+}
+
+let queue = getQueue();
+
+// ===== 保存 =====
+
+function save(){
+
+    localStorage.setItem(
+        "cards",
+        JSON.stringify(cards)
+    );
+
+    localStorage.setItem(
+        "todayCount",
+        today
+    );
+
+}
+
+// ===== 更新统计 =====
+
+function updateStats(){
+
+    document.getElementById(
+        "todayCount"
+    ).innerText = today;
+
+    document.getElementById(
+        "cardCount"
+    ).innerText =
+        cards.length;
+
+}
+
+function updateProgress(){
+
+    document.getElementById(
+        "progress"
+    ).innerText =
+        `${Math.min(index+1, queue.length)}/${queue.length}`;
+
+}
+
+// ===== 渲染学习卡 =====
+
+function renderCard(){
+
+    queue = getQueue();
+
+    updateProgress();
+
+    if(queue.length === 0){
+
+        document.getElementById(
+            "studyCard"
+        ).innerHTML =
+        "🎉 今日没有待复习卡片";
+
+        document.getElementById(
+            "showBtn"
+        ).style.display =
+        "none";
+
+        document.getElementById(
+            "ratings"
+        ).classList.add(
+            "hidden"
+        );
+
+        return;
+    }
+
+    if(index >= queue.length){
+
+        index = 0;
+    }
+
+    const card =
+        queue[index];
+
+    document.getElementById(
+        "studyCard"
+    ).innerHTML =
+        showAnswer
+        ? card.back
+        : card.front;
+
+}
+
+// ===== 显示答案 =====
+
+document.getElementById(
+    "showBtn"
+).onclick = function(){
+
+    showAnswer = true;
+
+    renderCard();
+
+    document.getElementById(
+        "showBtn"
+    ).classList.add(
+        "hidden"
+    );
+
+    document.getElementById(
+        "ratings"
+    ).classList.remove(
+        "hidden"
+    );
+
+};
+
+// 点击卡片翻转
+
+document.getElementById(
+    "studyCard"
+).onclick = function(){
+
+    if(queue.length === 0){
+        return;
+    }
+
+    showAnswer =
+        !showAnswer;
+
+    renderCard();
+
+};
+
+// ===== 评分 =====
+
+function rate(rating){
+
+    const card =
+        queue[index];
+
+    schedule(
+        card,
+        rating
+    );
+
+    today++;
+
+    save();
+
+    showAnswer = false;
+
+    index++;
+
+    document.getElementById(
+        "showBtn"
+    ).classList.remove(
+        "hidden"
+    );
+
+    document.getElementById(
+        "ratings"
+    ).classList.add(
+        "hidden"
+    );
+
+    updateStats();
+
+    renderCard();
+
+}
+
+// ===== 添加卡片 =====
+
+function addCard(){
+
+    const front =
+        document
+        .getElementById(
+            "frontInput"
+        )
+        .value
+        .trim();
+
+    const back =
+        document
+        .getElementById(
+            "backInput"
+        )
+        .value
+        .trim();
+
+    if(!front || !back){
+
+        alert(
+            "请填写问题和答案"
+        );
+
+        return;
+    }
+
+    const card = {
+
+        id: Date.now(),
+
+        front,
+
+        back,
+
+        stability: 1,
+
+        difficulty: 5,
+
+        nextReview:
+            Date.now()
+
+    };
+
+    cards.push(card);
+
+    save();
+
+    renderList();
+
+    updateStats();
+
+    document.getElementById(
+        "frontInput"
+    ).value = "";
+
+    document.getElementById(
+        "backInput"
+    ).value = "";
+
+    alert(
+        "卡片添加成功"
+    );
+
+}
+
+// ===== 删除卡片 =====
+
+function deleteCard(id){
+
+    if(
+        !confirm(
+            "确定删除？"
+        )
+    ){
+        return;
+    }
+
+    cards =
+        cards.filter(
+            c =>
+            c.id !== id
+        );
+
+    save();
+
+    queue = getQueue();
+
+    if(
+        index >= queue.length
+    ){
+        index = 0;
+    }
+
+    renderList();
+
+    updateStats();
+
+    renderCard();
+
+}
+
+// ===== 卡片列表 =====
+
+function renderList(){
+
+    const list =
+        document.getElementById(
+            "cardList"
+        );
+
+    list.innerHTML = "";
+
+    cards.forEach(card=>{
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+        div.className =
+            "card-item";
+
+        div.innerHTML =
+
+        `
+        <div>
+            <b>
+            ${escapeHtml(
+                card.front
+            )}
+            </b>
+        </div>
+
+        <div
+            class="small"
+            style="
+                margin-top:6px;
+            "
+        >
+            ${escapeHtml(
+                card.back
+            )}
+        </div>
+
+        <button
+            class="
+              button
+              delete-btn
+            "
+            style="
+              margin-top:10px;
+            "
+            onclick="
+              deleteCard(
+                ${card.id}
+              )
+            "
+        >
+            删除
+        </button>
+        `;
+
+        list.appendChild(
+            div
+        );
+
+    });
+
+}
+
+// ===== 防止 HTML 注入 =====
+
+function escapeHtml(text){
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.innerText =
+        text;
+
+    return div.innerHTML;
+
+}
+
+// ===== 初始化 =====
+
+updateStats();
+
+renderList();
+
+renderCard();
+
+save();
+
+</script>
+
+</body>
+</html>
